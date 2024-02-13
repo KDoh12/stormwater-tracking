@@ -1,16 +1,15 @@
 // Create map
 const map = L.map("map", {
-  center: [38.02, -84.5],
-  zoom: 14,
+  center: [38.0268, -84.5051],
+  zoom: 15,
 });
 
 // Create global variables
-let point;
-let line;
 let stmLine;
 let stmPoint;
 let stmLineGeoJSON;
 let stmPointGeoJSON;
+let networkLayer;
 
 // Create function to load all layers
 function getData() {
@@ -66,44 +65,84 @@ function drawMap(result) {
     },
   }).addTo(map);
 
+  // When a Storm point is clicked on
   stmPoint.on("click", function (e) {
     // Create empty Network feature
     let network = {
       type: "FeatureCollection",
       features: [],
     };
-    let networkLayer;
-    // Check for if networklayer is added to map or not
+
+    // Check if networklayer is added to map or not
     if (networkLayer) {
+      // Remove it if so
       map.removeLayer(networkLayer);
     }
 
-    point = turf.point([e.latlng.lng, e.latlng.lat]);
-    // console.log(point);
-
+    // Create a point
+    let startingPoint = turf.point([e.latlng.lng, e.latlng.lat]);
+    // For each feature in the GeoJSON
     stmLineGeoJSON.features.forEach(function (f) {
-      // console.log(f);
-      line = turf.lineString(f.geometry.coordinates);
-      // console.log("Line: ", line);
-      // console.log("Point: ", point);
-      // let isPointOnLine = turf.booleanPointOnLine(point, line);
-      // console.log(isPointOnLine);
-      if (turf.booleanPointOnLine(point, line)) {
-        network.features.push(f);
-        console.log(f);
-        console.log(line);
+      // Create a line
+      let line = turf.lineString(f.geometry.coordinates);
+
+      // Check if the point is on the line
+      if (turf.booleanPointOnLine(startingPoint, line)) {
+        // Check coordinates and assign if flow is up or down
+        if (checkCoords(startingPoint, line)) {
+          f.properties.flow = "Down";
+          network.features.push(f); // Push the feature to the network
+          let endPoint = f.geometry.coordinates[f.geometry.coordinates.length - 1];
+
+          // Follow the downstream line
+          followDown(endPoint, network);
+        }
+        // console.log(line);
       }
     });
 
     console.log("Network: ", network);
 
+    // Add networkLayer to the map
     networkLayer = L.geoJSON(network, {
       style: function (feature) {
         return {
           color: "#FF4500",
-          weight: 2,
+          weight: 4,
         };
       },
     }).addTo(map);
+  });
+}
+
+// Function to check if the line's starting coordinates match the point
+function checkCoords(point, line) {
+  ptLon = point.geometry.coordinates[0];
+  ptLat = point.geometry.coordinates[1];
+  lnLon = line.geometry.coordinates[0][0];
+  lnLat = line.geometry.coordinates[0][1];
+
+  if (ptLon === lnLon && ptLat === lnLat) {
+    return true;
+  }
+
+  // console.log(`[${ptLon}, ${ptLat}]`);
+}
+
+// Function to continue down the flow path
+function followDown(endPoint, network) {
+  stmLineGeoJSON.features.forEach(function (f) {
+    // Create line and point
+    let line = turf.lineString(f.geometry.coordinates);
+    let point = turf.point(endPoint);
+
+    // Check if the end point is on the current line and that the current feature is not already in the network
+    if (turf.booleanPointOnLine(point, line) && !network.features.some((feature) => feature === f)) {
+      if (checkCoords(point, line)) {
+        f.properties.flow = "Down";
+        network.features.push(f);
+        followDown(f.geometry.coordinates[f.geometry.coordinates.length - 1], network);
+      }
+    }
   });
 }
