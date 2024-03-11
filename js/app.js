@@ -1,15 +1,20 @@
+// Adjust Height of map
+adjustHeight();
+window.addEventListener("resize", adjustHeight);
+
 // Create map
 const map = L.map("map", {
   center: [38.0268, -84.5051],
   zoom: 15,
+  maxZoom: 18,
+  minZoom: 14,
 });
 
 // Create global variables
-let stmLine;
-let stmPoint;
 let stmLineGeoJSON;
 let stmPointGeoJSON;
 let networkLayer;
+let bufferLayer;
 
 // Create function to load all layers
 function getData() {
@@ -47,8 +52,8 @@ function drawMap(result) {
   // console.log(stmLineGeoJSON);
   // console.log(stmPointGeoJSON);
 
-  // Add Map Layers
-  stmLine = L.geoJSON(result[0], {
+  // Add Storm Line features
+  let stmLine = L.geoJSON(result[0], {
     style: function (feature) {
       return {
         color: "#20282e",
@@ -57,16 +62,22 @@ function drawMap(result) {
     },
   }).addTo(map);
 
-  stmPoint = L.geoJSON(result[1], {
+  // Set bounds to the stmLine layer
+  map.setMaxBounds(stmLine.getBounds());
+
+  // Add Storm Drain features
+  let stmDrains = L.geoJSON(result[1], {
     pointToLayer: function (geoJsonPoint, latlng) {
       return L.circleMarker(latlng, {
         radius: 2,
       });
     },
+    filter: drainFilter,
   }).addTo(map);
+  // console.log(stmDrains);
 
-  // When a Storm point is clicked on
-  stmPoint.on("click", function (e) {
+  // When map is clicked on
+  map.on("click", function (e) {
     // Create empty Network feature
     let network = {
       type: "FeatureCollection",
@@ -79,8 +90,24 @@ function drawMap(result) {
       map.removeLayer(networkLayer);
     }
 
-    // Create a point
-    let startingPoint = turf.point([e.latlng.lng, e.latlng.lat]);
+    // Check if bufferLayer is added to map or not
+    if (bufferLayer) {
+      // Remove it if so
+      map.removeLayer(bufferLayer);
+    }
+
+    // Create a point from clicked location
+    let clickPoint = turf.point([e.latlng.lng, e.latlng.lat]);
+
+    // Create a buffer and add to map
+    let buffer = turf.buffer(clickPoint, 0.06096, { units: "kilometers" }); // 50ft (0.01524) 150ft (0.04572) 200ft (0.06096)
+    bufferLayer = L.geoJson(buffer);
+    bufferLayer.addTo(map);
+
+    // Find the starting point of the flow
+    let startingPoint = turf.point(selectpoints(network, clickPoint, buffer, stmDrains));
+    // console.log(startingPoint)
+
     // For each feature in the GeoJSON
     stmLineGeoJSON.features.forEach(function (f) {
       // Create a line
@@ -97,7 +124,6 @@ function drawMap(result) {
           // Follow the downstream line
           followDown(endPoint, network);
         }
-        // console.log(line);
       }
     });
 
@@ -112,7 +138,17 @@ function drawMap(result) {
         };
       },
     }).addTo(map);
+
+    console.log("Network Layer: ", networkLayer);
   });
+}
+
+// Function to resize map
+function adjustHeight() {
+  const mapSize = document.querySelector("#map"),
+    removeHeight = document.querySelector("#header").offsetHeight,
+    resize = window.innerHeight - removeHeight;
+  mapSize.style.height = `${resize}px`;
 }
 
 // Function to check if the line's starting coordinates match the point
@@ -125,8 +161,6 @@ function checkCoords(point, line) {
   if (ptLon === lnLon && ptLat === lnLat) {
     return true;
   }
-
-  // console.log(`[${ptLon}, ${ptLat}]`);
 }
 
 // Function to continue down the flow path
@@ -145,4 +179,65 @@ function followDown(endPoint, network) {
       }
     }
   });
+}
+
+// Filter function to only show storm drains
+function drainFilter(feature) {
+  let vals = ["Catchbasin", "Inlet", "Manhole-CB", "Detention Basin", "Headwall", "Detention Pond", "Spring"];
+  const st = feature.properties.StructureType;
+  const ft = feature.properties.FeatureType;
+  if (vals.includes(st) || vals.includes(ft)) {
+    return feature;
+  }
+}
+
+// Function to select points inside the buffer and find the nearest
+function selectpoints(network, clickPoint, buffer, stmDrains) {
+  pointsInPoly = [];
+  pointDist = [];
+
+  // Go through each drain feature and check if inside buffer
+  stmDrains.eachLayer(function (layer) {
+    let pt = turf.getCoord(layer.feature);
+    if (turf.booleanPointInPolygon(pt, buffer)) {
+      pointsInPoly.push(layer);
+    }
+  });
+
+  // Go through each point inside the buffer and calculate distance from clicked point
+  pointsInPoly.forEach(function (point) {
+    // console.log("Starting: ", clickPoint);
+    // console.log("Ending: ", point._latlng);
+    let distance = turf.distance(clickPoint.geometry.coordinates, [point._latlng.lng, point._latlng.lat], { units: "kilometers" });
+    pointDist.push(distance);
+  });
+  // Find the index position of the lowest distance
+  let indexNum = pointDist.indexOf(Math.min(...pointDist));
+
+  // Make starting line and add to Network geoJSON
+  let startingLine = makeStartLine(clickPoint, indexNum, pointsInPoly);
+
+  // Push the starting line to the Network
+  network.features.push(startingLine);
+
+  // Return the lat and long of the starting position on the line
+  return [pointsInPoly[indexNum]._latlng.lng, pointsInPoly[indexNum]._latlng.lat];
+}
+
+// Funtion to draw a line between a clicked location and a drain location
+function makeStartLine(clickPoint, indexNum, pointsInPoly) {
+  let clickCoords = clickPoint.geometry.coordinates;
+  let drainCoords = [pointsInPoly[indexNum]._latlng.lng, pointsInPoly[indexNum]._latlng.lat];
+
+  // Build feature
+  let feature = {
+    type: "Feature",
+    geometry: {
+      type: "LineString",
+      coordinates: [clickCoords, drainCoords],
+    },
+    properties: {},
+  };
+
+  return feature;
 }

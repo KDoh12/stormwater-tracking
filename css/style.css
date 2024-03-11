@@ -1,6 +1,26 @@
+body {
+  height: 100vh;
+}
+
+.logo {
+  width: 50px;
+}
+
+#header {
+  background-color: #0033a0;
+  color: white;
+}
+
 #map {
   background-color: beige;
   position: absolute;
   width: 100%;
   height: 100%;
+}
+
+/* When screen is 768px or wider */
+@media screen and (min-width: 768px) {
+  #map {
+    border-top: none;
+  }
 }
