@@ -46,6 +46,32 @@ function drawMap(result) {
   });
   campusBasemap.addTo(map);
 
+  const buildingLabels = L.esri.featureLayer({
+    url: "https://ugisserver.uky.edu/arcgis/rest/services/UK_MAP_BASE_Campus_Overlay_3857_dy/MapServer/23",
+    fields: ["Label", "SHAPE"],
+    onEachFeature: function (feature, layer) {
+      feature.bindTooltip("Hello", {
+        permanent: true,
+      });
+    },
+  });
+  buildingLabels.addTo(map);
+
+  // Load aerial imagery
+  const aerial = L.esri.tiledMapLayer({
+    url: "https://ugisserver.uky.edu/arcgis/rest/services/UK_MAP_BASE_Imagery_3857_ca/MapServer",
+  });
+
+  // Add layer control to toggle on aerial imagery
+  const overlay = {
+    "Aerial Imagery": aerial,
+  };
+
+  const controlOptions = {
+    collapsed: false,
+  };
+  const layerControl = L.control.layers(null, overlay, controlOptions).addTo(map);
+
   // Add the plain geojson to variables to be used in identifying network
   stmLineGeoJSON = result[0];
   stmPointGeoJSON = result[1];
@@ -105,7 +131,17 @@ function drawMap(result) {
     bufferLayer.addTo(map);
 
     // Find the starting point of the flow
-    let startingPoint = turf.point(selectpoints(network, clickPoint, buffer, stmDrains));
+    let findPoint = selectpoints(network, clickPoint, buffer, stmDrains);
+    let startingPoint;
+
+    if (findPoint.length == 0) {
+      // alert("There are no drains within 200ft. Please choose another area.");
+      let modal = new bootstrap.Modal(document.getElementById("alertModal"));
+      modal.show();
+      return;
+    } else {
+      startingPoint = turf.point(findPoint);
+    }
     // console.log(startingPoint)
 
     // For each feature in the GeoJSON
@@ -204,24 +240,28 @@ function selectpoints(network, clickPoint, buffer, stmDrains) {
     }
   });
 
-  // Go through each point inside the buffer and calculate distance from clicked point
-  pointsInPoly.forEach(function (point) {
-    // console.log("Starting: ", clickPoint);
-    // console.log("Ending: ", point._latlng);
-    let distance = turf.distance(clickPoint.geometry.coordinates, [point._latlng.lng, point._latlng.lat], { units: "kilometers" });
-    pointDist.push(distance);
-  });
-  // Find the index position of the lowest distance
-  let indexNum = pointDist.indexOf(Math.min(...pointDist));
+  if (pointsInPoly.length == 0) {
+    return [];
+  } else {
+    // Go through each point inside the buffer and calculate distance from clicked point
+    pointsInPoly.forEach(function (point) {
+      // console.log("Starting: ", clickPoint);
+      // console.log("Ending: ", point._latlng);
+      let distance = turf.distance(clickPoint.geometry.coordinates, [point._latlng.lng, point._latlng.lat], { units: "kilometers" });
+      pointDist.push(distance);
+    });
+    // Find the index position of the lowest distance
+    let indexNum = pointDist.indexOf(Math.min(...pointDist));
 
-  // Make starting line and add to Network geoJSON
-  let startingLine = makeStartLine(clickPoint, indexNum, pointsInPoly);
+    // Make starting line and add to Network geoJSON
+    let startingLine = makeStartLine(clickPoint, indexNum, pointsInPoly);
 
-  // Push the starting line to the Network
-  network.features.push(startingLine);
+    // Push the starting line to the Network
+    network.features.push(startingLine);
 
-  // Return the lat and long of the starting position on the line
-  return [pointsInPoly[indexNum]._latlng.lng, pointsInPoly[indexNum]._latlng.lat];
+    // Return the lat and long of the starting position on the line
+    return [pointsInPoly[indexNum]._latlng.lng, pointsInPoly[indexNum]._latlng.lat];
+  }
 }
 
 // Funtion to draw a line between a clicked location and a drain location
