@@ -18,6 +18,11 @@ body {
   height: 100%;
 }
 
+.modal-header {
+  background-color: #0033a0;
+  color: white;
+}
+
 /* When screen is 768px or wider */
 @media screen and (min-width: 768px) {
   #map {

@@ -49,12 +49,14 @@ function drawMap(result) {
   const buildingLabels = L.esri.featureLayer({
     url: "https://ugisserver.uky.edu/arcgis/rest/services/UK_MAP_BASE_Campus_Overlay_3857_dy/MapServer/23",
     fields: ["Label", "SHAPE"],
-    onEachFeature: function (feature, layer) {
-      feature.bindTooltip("Hello", {
-        permanent: true,
-      });
-    },
+    // onEachFeature: function (feature, layer) {
+    // console.log(feature);
+    // feature.bindTooltip("Hello", {
+    //   permanent: true,
+    // });
+    // },
   });
+  console.log(buildingLabels);
   buildingLabels.addTo(map);
 
   // Load aerial imagery
@@ -131,7 +133,7 @@ function drawMap(result) {
     bufferLayer.addTo(map);
 
     // Find the starting point of the flow
-    let findPoint = selectpoints(network, clickPoint, buffer, stmDrains);
+    let findPoint = selectPoints(network, clickPoint, buffer, stmDrains);
     let startingPoint;
 
     if (findPoint.length == 0) {
@@ -146,16 +148,26 @@ function drawMap(result) {
 
     // For each feature in the GeoJSON
     stmLineGeoJSON.features.forEach(function (f) {
+      let propCoords = f.geometry.coordinates;
+
       // Create a line
-      let line = turf.lineString(f.geometry.coordinates);
+      let line = turf.lineString(propCoords);
 
       // Check if the point is on the line
       if (turf.booleanPointOnLine(startingPoint, line)) {
         // Check coordinates and assign if flow is up or down
         if (checkCoords(startingPoint, line)) {
-          f.properties.flow = "Down";
-          network.features.push(f); // Push the feature to the network
-          let endPoint = f.geometry.coordinates[f.geometry.coordinates.length - 1];
+          // f.properties.flow = "Down";
+          // network.features.push(f); // Push the feature to the network
+          network.features[0].properties.flow = "Down";
+          // console.log(propCoords);
+          for (let index in propCoords) {
+            if (index != 0) {
+              network.features[0].geometry.coordinates.push(propCoords[index]);
+            }
+            // console.log(propCoords[index]);
+          }
+          let endPoint = propCoords[propCoords.length - 1];
 
           // Follow the downstream line
           followDown(endPoint, network);
@@ -179,6 +191,10 @@ function drawMap(result) {
   });
 }
 
+// *******************************************************
+// End drawMap
+// *******************************************************
+
 // Function to resize map
 function adjustHeight() {
   const mapSize = document.querySelector("#map"),
@@ -186,6 +202,10 @@ function adjustHeight() {
     resize = window.innerHeight - removeHeight;
   mapSize.style.height = `${resize}px`;
 }
+
+// *******************************************************
+// End adjustHeight
+// *******************************************************
 
 // Function to check if the line's starting coordinates match the point
 function checkCoords(point, line) {
@@ -199,23 +219,37 @@ function checkCoords(point, line) {
   }
 }
 
+// *******************************************************
+// End checkCoords
+// *******************************************************
+
 // Function to continue down the flow path
 function followDown(endPoint, network) {
   stmLineGeoJSON.features.forEach(function (f) {
+    let propCoords = f.geometry.coordinates;
+
     // Create line and point
-    let line = turf.lineString(f.geometry.coordinates);
+    let line = turf.lineString(propCoords);
     let point = turf.point(endPoint);
 
     // Check if the end point is on the current line and that the current feature is not already in the network
-    if (turf.booleanPointOnLine(point, line) && !network.features.some((feature) => feature === f)) {
+    // && !network.features.some((feature) => feature === f)
+    if (turf.booleanPointOnLine(point, line)) {
       if (checkCoords(point, line)) {
-        f.properties.flow = "Down";
-        network.features.push(f);
-        followDown(f.geometry.coordinates[f.geometry.coordinates.length - 1], network);
+        // f.properties.flow = "Down";
+        // network.features.push(f);
+        for (let index in propCoords) {
+          network.features[0].geometry.coordinates.push(propCoords[index]);
+        }
+        followDown(propCoords[propCoords.length - 1], network);
       }
     }
   });
 }
+
+// *******************************************************
+// End followDown
+// *******************************************************
 
 // Filter function to only show storm drains
 function drainFilter(feature) {
@@ -227,8 +261,12 @@ function drainFilter(feature) {
   }
 }
 
+// *******************************************************
+// End drainFilter
+// *******************************************************
+
 // Function to select points inside the buffer and find the nearest
-function selectpoints(network, clickPoint, buffer, stmDrains) {
+function selectPoints(network, clickPoint, buffer, stmDrains) {
   pointsInPoly = [];
   pointDist = [];
 
@@ -264,10 +302,17 @@ function selectpoints(network, clickPoint, buffer, stmDrains) {
   }
 }
 
+// *******************************************************
+// End selectPoints
+// *******************************************************
+
 // Funtion to draw a line between a clicked location and a drain location
 function makeStartLine(clickPoint, indexNum, pointsInPoly) {
   let clickCoords = clickPoint.geometry.coordinates;
   let drainCoords = [pointsInPoly[indexNum]._latlng.lng, pointsInPoly[indexNum]._latlng.lat];
+
+  console.log("ClickCoords: ", clickCoords);
+  console.log("drainCoords: ", drainCoords);
 
   // Build feature
   let feature = {
@@ -281,3 +326,7 @@ function makeStartLine(clickPoint, indexNum, pointsInPoly) {
 
   return feature;
 }
+
+// *******************************************************
+// End makeStartLine
+// *******************************************************

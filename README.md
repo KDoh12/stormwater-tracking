@@ -49,9 +49,37 @@ This mapping tool is a web based application that can be used both on mobile, an
 
 ### Layout
 
+Below are very basic mockups that I developed to help decide on how I wanted my web map to look/feel.
+
+Desktop Layout
+
+![desktop layout](./img/desktop_mockup.png)
+
+Mobile Layout
+
+![mobile layout](./img/mobile_mockup.png)
+
 ### Symbology
 
+Most of my data resides as points and lines. Upon first loading there will be no data displayed besides a basemap. Once someone clicks or taps on the map, there will be a line that gets drawn from your starting point and travel until it reaches the end of the stormwater network. This line will be a simple line utilizing a single color. The line will either be UK Blue, or a type of Yellow or Orange depending on which looks better against the basemap.
+
+Along the line, various points will also show up, these points will have various symbols based on their "type", I will include a photo below of their symbols.
+
+![legend showing point symbols](./img/point_legend.png)
+
+These points will display info about themselves when hovered/tapped on.
+
 ### User Interaction
+
+This whole map relies on user interaction to even function. Without interaction, it is simply a basemap. Users will click or tap a location on the map. This clicked/tapped location becomes their "starting point" which the route will begin to draw from. Once the route has drawn, info about the route will display either in the info box, or as a popup on the route itself. Users will also see various points popup along the route. I will not include a legend of these points on the map as I want users to be curious as to what they are and intice them to hover/tap on the points which will provide additional info about them such as what they are, why they are important, and a link to additional info about how they work.
+
+An additional piece of user interaction that interacts with the map is a toggle switch that will "turn on" aeiral imagery that is overlaid on the basemap. This provides just a bit of extra visual information to users.
+
+There is a sidebar component that loads up first launching the site, this contains general info about the map and the overall project as well as attribution information.
+
+There is also an "alert" component that will popup on the screen is a user clicks/taps on a part of the map that will not generate any route. This is to provide some sort of confirmation that the user was doing the right thing, just in a "bad spot". These "bad spots", can't really be shown and is entirely dependant upon the underlying stormwater features. Areas, that have no data, will not result in a route.
+
+Users will be able to pan and zoom around the map, but will be confined to UK's Main Campus. This is so users will not become "lost" and so they will not click on points outside of campus, thus resulting in nothing happening on the map.
 
 ### Design Choices
 
