@@ -23,6 +23,18 @@ body {
   color: white;
 }
 
+#ui-control {
+  color: white;
+  width: auto;
+  padding: 10px;
+  background-color: #0033a0;
+  border-radius: 3px;
+}
+
+.offcanvas-header {
+  background-color: #0033a0;
+}
+
 /* When screen is 768px or wider */
 @media screen and (min-width: 768px) {
   #map {

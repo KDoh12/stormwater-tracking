@@ -41,17 +41,41 @@
       </div>
     </div>
 
+    <!-- uiControl -->
+    <div id="ui-control" class="rounded">
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="imagery-toggle" onchange="imageryToggle()" />
+        <label class="form-check-label" for="imagery-toggle">Aerial Imagery</label>
+      </div>
+    </div>
+
     <!-- OffCanvas -->
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="about" aria-labelledby="aboutTitle">
+    <div class="offcanvas offcanvas-end show" tabindex="-1" id="about" aria-labelledby="aboutTitle">
       <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="aboutTitle">About this App!</h5>
-        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        <h5 class="offcanvas-title text-white" id="aboutTitle">About this App!</h5>
+        <button type="button" class="btn-close btn-close-white text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
       </div>
       <div class="offcanvas-body">
         <div>
-          <p>This is where I will talk about this application, the project, and any other related info I might need such as links to resources.</p>
+          <h6><b>What is this?</b></h6>
+          <p>This application is meant to show how stormwater (or anything that happens to go into a stormwater drain) flows across campus.</p>
+          <h6><b>What do I do?</b></h6>
+          <p>
+            Using this application is simple! Click anywhere on UK's Main Campus to see the path that something (hopefully water) takes through the
+            stormsewer system.
+          </p>
+          <h6><b>More Info</b></h6>
+          <p>
+            The University of Kentucky's Main Campus covers roughly 900 acres. Because of this size, many environmental systems are impacted directly
+            from UK. One of these systems is stormwater. Stormwater is classified as any excess water from rainfall or snowmelt that is not asorbed
+            through the soil and flows across the ground. This stormwater can pick up polutants or trash and carry it into local waterbodies if left
+            unmitigated. UK has implemented various Best Management Practices (BMPs) and an exhaustive stormsewer system in order to migitgate
+            stormwater and ensure that local waterbodies are kept clean.<br /><br />To Learn more about UK's stormwater efforts, click
+            <a href="https://www.uky.edu/env/stormwater">here</a>
+          </p>
         </div>
-        <div class="mt-auto mb-3">
+        <hr />
+        <div class="mt-4 mb-3">
           <div>
             <ul>
               <li>Created by: Kevin Dohner</li>
@@ -87,6 +111,8 @@
     <script src="https://unpkg.com/esri-leaflet/dist/esri-leaflet.js"></script>
     <!-- Turf JS -->
     <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+    <!-- Polyline SnakeAnimation JS -->
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.polyline.snakeanim@0.2.0/L.Polyline.SnakeAnim.js"></script>
     <!-- Boostrap JS -->
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"

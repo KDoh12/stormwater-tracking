@@ -6,15 +6,18 @@ window.addEventListener("resize", adjustHeight);
 const map = L.map("map", {
   center: [38.0268, -84.5051],
   zoom: 15,
-  maxZoom: 18,
+  maxZoom: 20,
   minZoom: 14,
 });
 
 // Create global variables
 let stmLineGeoJSON;
 let stmPointGeoJSON;
+let stmBMP;
+let network;
 let networkLayer;
 let bufferLayer;
+let aerial;
 
 // Create function to load all layers
 function getData() {
@@ -46,68 +49,62 @@ function drawMap(result) {
   });
   campusBasemap.addTo(map);
 
-  const buildingLabels = L.esri.featureLayer({
-    url: "https://ugisserver.uky.edu/arcgis/rest/services/UK_MAP_BASE_Campus_Overlay_3857_dy/MapServer/23",
-    fields: ["Label", "SHAPE"],
-    // onEachFeature: function (feature, layer) {
-    // console.log(feature);
-    // feature.bindTooltip("Hello", {
-    //   permanent: true,
-    // });
-    // },
-  });
-  console.log(buildingLabels);
-  buildingLabels.addTo(map);
+  // const buildingLabels = "https://ugisserver.uky.edu/arcgis/rest/services/UK_MAP_BASE_Campus_Overlay_3857_dy/MapServer/23"
 
   // Load aerial imagery
-  const aerial = L.esri.tiledMapLayer({
+  aerial = L.esri.tiledMapLayer({
     url: "https://ugisserver.uky.edu/arcgis/rest/services/UK_MAP_BASE_Imagery_3857_ca/MapServer",
   });
 
-  // Add layer control to toggle on aerial imagery
-  const overlay = {
-    "Aerial Imagery": aerial,
+  // Build control for UI Toggles
+  let uiControl = L.control({
+    position: "topright",
+  });
+
+  uiControl.onAdd = function (map) {
+    let controls = L.DomUtil.get("ui-control");
+    L.DomEvent.disableScrollPropagation(controls);
+    L.DomEvent.disableClickPropagation(controls);
+    return controls;
   };
 
-  const controlOptions = {
-    collapsed: false,
-  };
-  const layerControl = L.control.layers(null, overlay, controlOptions).addTo(map);
+  uiControl.addTo(map);
 
   // Add the plain geojson to variables to be used in identifying network
   stmLineGeoJSON = result[0];
   stmPointGeoJSON = result[1];
-  // console.log(stmLineGeoJSON);
-  // console.log(stmPointGeoJSON);
 
   // Add Storm Line features
-  let stmLine = L.geoJSON(result[0], {
+  let stmLine = L.geoJSON(stmLineGeoJSON, {
     style: function (feature) {
       return {
         color: "#20282e",
         weight: 2,
       };
     },
-  }).addTo(map);
+  });
 
   // Set bounds to the stmLine layer
   map.setMaxBounds(stmLine.getBounds());
 
   // Add Storm Drain features
-  let stmDrains = L.geoJSON(result[1], {
+  let stmDrains = L.geoJSON(stmPointGeoJSON, {
     pointToLayer: function (geoJsonPoint, latlng) {
       return L.circleMarker(latlng, {
-        radius: 2,
+        radius: 3,
       });
     },
     filter: drainFilter,
+    onEachFeature: function (feature, layer) {
+      layer.bindTooltip(`${feature.geometry.coordinates}`);
+    },
   }).addTo(map);
   // console.log(stmDrains);
 
   // When map is clicked on
   map.on("click", function (e) {
-    // Create empty Network feature
-    let network = {
+    // Start Network feature
+    network = {
       type: "FeatureCollection",
       features: [],
     };
@@ -118,10 +115,10 @@ function drawMap(result) {
       map.removeLayer(networkLayer);
     }
 
-    // Check if bufferLayer is added to map or not
-    if (bufferLayer) {
+    // Check if bmpLayer is added to map or not
+    if (stmBMP) {
       // Remove it if so
-      map.removeLayer(bufferLayer);
+      map.removeLayer(stmBMP);
     }
 
     // Create a point from clicked location
@@ -129,22 +126,21 @@ function drawMap(result) {
 
     // Create a buffer and add to map
     let buffer = turf.buffer(clickPoint, 0.06096, { units: "kilometers" }); // 50ft (0.01524) 150ft (0.04572) 200ft (0.06096)
-    bufferLayer = L.geoJson(buffer);
-    bufferLayer.addTo(map);
 
     // Find the starting point of the flow
     let findPoint = selectPoints(network, clickPoint, buffer, stmDrains);
     let startingPoint;
 
+    // If no point is found...
     if (findPoint.length == 0) {
-      // alert("There are no drains within 200ft. Please choose another area.");
+      // Alert users that there are no drains in the area and to select a new point
       let modal = new bootstrap.Modal(document.getElementById("alertModal"));
       modal.show();
       return;
     } else {
+      // Else, create a turf point
       startingPoint = turf.point(findPoint);
     }
-    // console.log(startingPoint)
 
     // For each feature in the GeoJSON
     stmLineGeoJSON.features.forEach(function (f) {
@@ -158,14 +154,13 @@ function drawMap(result) {
         // Check coordinates and assign if flow is up or down
         if (checkCoords(startingPoint, line)) {
           // f.properties.flow = "Down";
-          // network.features.push(f); // Push the feature to the network
+          // network.features.push(f);
           network.features[0].properties.flow = "Down";
-          // console.log(propCoords);
           for (let index in propCoords) {
+            // Do not use the first index as it is already added to the network
             if (index != 0) {
               network.features[0].geometry.coordinates.push(propCoords[index]);
             }
-            // console.log(propCoords[index]);
           }
           let endPoint = propCoords[propCoords.length - 1];
 
@@ -188,6 +183,26 @@ function drawMap(result) {
     }).addTo(map);
 
     console.log("Network Layer: ", networkLayer);
+
+    // Add BMP points that are on the route to map
+    stmBMP = L.geoJSON(stmPointGeoJSON, {
+      // Create symbology
+      pointToLayer: function (geoJsonPoint, latlng) {
+        return L.marker(latlng, {
+          icon: chooseIcon(geoJsonPoint),
+        });
+      },
+      // Filter to only BMPs on the route
+      filter: bmpFilter,
+      // Building Popup and attach to each feature
+      onEachFeature: function (feature, layer) {
+        let props = feature.properties;
+        let popupInfo = `${props.StructureType}<br>
+                          ${props.FeatureType}`;
+
+        layer.bindPopup(popupInfo);
+      },
+    }).addTo(map);
   });
 }
 
@@ -232,14 +247,16 @@ function followDown(endPoint, network) {
     let line = turf.lineString(propCoords);
     let point = turf.point(endPoint);
 
-    // Check if the end point is on the current line and that the current feature is not already in the network
+    // Check if the end point is on the current line
     // && !network.features.some((feature) => feature === f)
     if (turf.booleanPointOnLine(point, line)) {
       if (checkCoords(point, line)) {
         // f.properties.flow = "Down";
         // network.features.push(f);
         for (let index in propCoords) {
-          network.features[0].geometry.coordinates.push(propCoords[index]);
+          if (index != 0 && !network.features[0].geometry.coordinates.includes(propCoords[index])) {
+            network.features[0].geometry.coordinates.push(propCoords[index]);
+          }
         }
         followDown(propCoords[propCoords.length - 1], network);
       }
@@ -265,6 +282,22 @@ function drainFilter(feature) {
 // End drainFilter
 // *******************************************************
 
+// Filter function to only show BMPs on line
+function bmpFilter(feature) {
+  let vals = ["Water Quality BMP", "WQBMP"];
+  const st = feature.properties.StructureType;
+  let pt = turf.point(feature.geometry.coordinates);
+  // console.log(feature.geometry.coordinates);
+  // console.log(network.features[0].geometry.coordinates);
+  if (vals.includes(st) && turf.booleanIntersects(feature, network.features[0])) {
+    return feature;
+  }
+}
+
+// *******************************************************
+// End bmpFilter
+// *******************************************************
+
 // Function to select points inside the buffer and find the nearest
 function selectPoints(network, clickPoint, buffer, stmDrains) {
   pointsInPoly = [];
@@ -283,8 +316,6 @@ function selectPoints(network, clickPoint, buffer, stmDrains) {
   } else {
     // Go through each point inside the buffer and calculate distance from clicked point
     pointsInPoly.forEach(function (point) {
-      // console.log("Starting: ", clickPoint);
-      // console.log("Ending: ", point._latlng);
       let distance = turf.distance(clickPoint.geometry.coordinates, [point._latlng.lng, point._latlng.lat], { units: "kilometers" });
       pointDist.push(distance);
     });
@@ -311,9 +342,6 @@ function makeStartLine(clickPoint, indexNum, pointsInPoly) {
   let clickCoords = clickPoint.geometry.coordinates;
   let drainCoords = [pointsInPoly[indexNum]._latlng.lng, pointsInPoly[indexNum]._latlng.lat];
 
-  console.log("ClickCoords: ", clickCoords);
-  console.log("drainCoords: ", drainCoords);
-
   // Build feature
   let feature = {
     type: "Feature",
@@ -330,3 +358,51 @@ function makeStartLine(clickPoint, indexNum, pointsInPoly) {
 // *******************************************************
 // End makeStartLine
 // *******************************************************
+
+// Function to handle imagery toggle switch
+function imageryToggle() {
+  if (map.hasLayer(aerial)) {
+    map.removeLayer(aerial);
+  } else {
+    map.addLayer(aerial);
+  }
+}
+
+// *******************************************************
+// End imageryToggle
+// *******************************************************
+
+// Function to choose which symbol is used for BMP points
+function chooseIcon(point) {
+  let iconUrl;
+  const props = point.properties.FeatureType;
+
+  if (props == "Bioretention") {
+    iconUrl = "img/symbols/Bioretention.svg";
+  } else if (props == "Class V Injection Well") {
+    iconUrl = "img/symbols/ClassVInjectionWell.svg";
+  } else if (props == "Detention Pond") {
+    iconUrl = "img/symbols/AbovegroundDetention.svg";
+  } else if (props == "Green Roof") {
+    iconUrl = "img/symbols/GreenRoof.svg";
+  } else if (props == "Inlet Control") {
+    iconUrl = "img/symbols/InletControl.svg";
+  } else if (props == "Permeable Pavement") {
+    iconUrl = "img/symbols/PermeablePavement.svg";
+  } else if (props == "Pretreatment Device") {
+    iconUrl = "img/symbols/PretreatmentDevice.svg";
+  } else if (props == "Rain Garden") {
+    iconUrl = "img/symbols/RainGarden.svg";
+  } else if (props == "Underground Detention") {
+    iconUrl = "img/symbols/UndergroundDetention.svg";
+  } else if (props == "Water Harvesting System") {
+    iconUrl = "img/symbols/WaterHarvesting.svg";
+  }
+
+  let myIcon = L.icon({
+    iconUrl: iconUrl,
+    iconSize: [15, 15],
+  });
+
+  return myIcon;
+}
