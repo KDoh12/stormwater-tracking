@@ -109,6 +109,10 @@ function drawMap(result) {
       features: [],
     };
 
+    console.log(network);
+
+    multiCoords = [];
+
     // Check if networklayer is added to map or not
     if (networkLayer) {
       // Remove it if so
@@ -128,7 +132,7 @@ function drawMap(result) {
     let buffer = turf.buffer(clickPoint, 0.06096, { units: "kilometers" }); // 50ft (0.01524) 150ft (0.04572) 200ft (0.06096)
 
     // Find the starting point of the flow
-    let findPoint = selectPoints(network, clickPoint, buffer, stmDrains);
+    let findPoint = selectPoints(network, clickPoint, buffer, stmDrains, multiCoords);
     let startingPoint;
 
     // If no point is found...
@@ -155,20 +159,38 @@ function drawMap(result) {
         if (checkCoords(startingPoint, line)) {
           // f.properties.flow = "Down";
           // network.features.push(f);
-          network.features[0].properties.flow = "Down";
-          for (let index in propCoords) {
-            // Do not use the first index as it is already added to the network
-            if (index != 0) {
-              network.features[0].geometry.coordinates.push(propCoords[index]);
-            }
-          }
+          // network.features[0].properties.flow = "Down";
+          multiCoords.push(propCoords);
+          // for (let index in propCoords) {
+          //   // Do not use the first index as it is already added to the network
+          //   if (index != 0) {
+          //     network.features[0].geometry.coordinates.push(propCoords[index]);
+          //   }
+          // }
           let endPoint = propCoords[propCoords.length - 1];
 
           // Follow the downstream line
-          followDown(endPoint, network);
+          followDown(endPoint, network, multiCoords);
         }
       }
     });
+
+    console.log(multiCoords);
+
+    if (multiCoords.length > 0) {
+      let feature = {
+        type: "Feature",
+        geometry: {
+          type: "MultiLineString",
+          coordinates: multiCoords,
+        },
+        properties: {
+          flow: "Down",
+        },
+      };
+
+      network.features[0] = feature;
+    }
 
     console.log("Network: ", network);
 
@@ -239,7 +261,7 @@ function checkCoords(point, line) {
 // *******************************************************
 
 // Function to continue down the flow path
-function followDown(endPoint, network) {
+function followDown(endPoint, network, multiCoords) {
   stmLineGeoJSON.features.forEach(function (f) {
     let propCoords = f.geometry.coordinates;
 
@@ -251,14 +273,15 @@ function followDown(endPoint, network) {
     // && !network.features.some((feature) => feature === f)
     if (turf.booleanPointOnLine(point, line)) {
       if (checkCoords(point, line)) {
+        multiCoords.push(propCoords);
         // f.properties.flow = "Down";
         // network.features.push(f);
-        for (let index in propCoords) {
-          if (index != 0 && !network.features[0].geometry.coordinates.includes(propCoords[index])) {
-            network.features[0].geometry.coordinates.push(propCoords[index]);
-          }
-        }
-        followDown(propCoords[propCoords.length - 1], network);
+        // for (let index in propCoords) {
+        //   if (index != 0 && !network.features[0].geometry.coordinates.includes(propCoords[index])) {
+        //     network.features[0].geometry.coordinates.push(propCoords[index]);
+        //   }
+        // }
+        followDown(propCoords[propCoords.length - 1], network, multiCoords);
       }
     }
   });
@@ -299,7 +322,7 @@ function bmpFilter(feature) {
 // *******************************************************
 
 // Function to select points inside the buffer and find the nearest
-function selectPoints(network, clickPoint, buffer, stmDrains) {
+function selectPoints(network, clickPoint, buffer, stmDrains, multiCoords) {
   pointsInPoly = [];
   pointDist = [];
 
@@ -323,7 +346,7 @@ function selectPoints(network, clickPoint, buffer, stmDrains) {
     let indexNum = pointDist.indexOf(Math.min(...pointDist));
 
     // Make starting line and add to Network geoJSON
-    let startingLine = makeStartLine(clickPoint, indexNum, pointsInPoly);
+    let startingLine = makeStartLine(clickPoint, indexNum, pointsInPoly, multiCoords);
 
     // Push the starting line to the Network
     network.features.push(startingLine);
@@ -338,21 +361,23 @@ function selectPoints(network, clickPoint, buffer, stmDrains) {
 // *******************************************************
 
 // Funtion to draw a line between a clicked location and a drain location
-function makeStartLine(clickPoint, indexNum, pointsInPoly) {
+function makeStartLine(clickPoint, indexNum, pointsInPoly, multiCoords) {
   let clickCoords = clickPoint.geometry.coordinates;
   let drainCoords = [pointsInPoly[indexNum]._latlng.lng, pointsInPoly[indexNum]._latlng.lat];
 
-  // Build feature
-  let feature = {
-    type: "Feature",
-    geometry: {
-      type: "LineString",
-      coordinates: [clickCoords, drainCoords],
-    },
-    properties: {},
-  };
+  multiCoords.push([clickCoords, drainCoords]);
 
-  return feature;
+  // Build feature
+  // let feature = {
+  //   type: "Feature",
+  //   geometry: {
+  //     type: "MultiLineString",
+  //     coordinates: [clickCoords, drainCoords],
+  //   },
+  //   properties: {},
+  // };
+
+  // return feature;
 }
 
 // *******************************************************
