@@ -1,3 +1,8 @@
+/* Custom Bootstrap colors */
+:root {
+  --bs-primary: #0033a0;
+}
+
 body {
   height: 100vh;
 }
@@ -7,7 +12,7 @@ body {
 }
 
 #header {
-  background-color: #0033a0;
+  background-color: var(--bs-primary);
   color: white;
 }
 
@@ -19,25 +24,63 @@ body {
 }
 
 .modal-header {
-  background-color: #0033a0;
+  background-color: var(--bs-primary);
   color: white;
 }
 
-#ui-control {
-  color: white;
-  width: auto;
+#ui-control,
+#info-control,
+#legend {
+  color: var(--bs-primary);
   padding: 10px;
-  background-color: #0033a0;
-  border-radius: 3px;
+  background-color: white;
+  border: 2px solid var(--bs-primary);
+  max-width: 200px;
 }
 
 .offcanvas-header {
-  background-color: #0033a0;
+  background-color: var(--bs-primary);
+}
+
+#legend {
+  width: auto;
+  height: auto;
+  /* padding: 6px 8px;
+  font-size: 1rem;
+  border-radius: 5px; */
+}
+
+#legend ul {
+  list-style-type: none;
+  padding: 0px;
+}
+
+.legImg {
+  width: 15px;
+  height: 15px;
+  margin-right: 5px;
+}
+
+.leaflet-popup-own .leaflet-popup-content-wrapper {
+  border: 2px solid var(--bs-primary);
+}
+
+.leaflet-popup-own .leaflet-popup-tip {
+  border: 2px solid var(--bs-primary);
+}
+
+.leaflet-popup-own .leaflet-popup-content {
+  color: var(--bs-primary);
 }
 
 /* When screen is 768px or wider */
 @media screen and (min-width: 768px) {
   #map {
     border-top: none;
+  }
+
+  #ui-control,
+  #info-control {
+    max-width: 250px;
   }
 }
