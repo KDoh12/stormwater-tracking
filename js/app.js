@@ -25,14 +25,17 @@ let network;
 let networkLayer;
 let bufferLayer;
 let aerial;
+let stmPoly;
 
 // Create function to load all layers
 function getData() {
-  return Promise.all([fetch("data/STM_Line_ln.geojson"), fetch("data/STM_Structure_pt.geojson"), fetch("data/STM_Structure_py.geojson")]).then(
-    (results) => {
-      return Promise.all(results.map((result) => result.json()));
-    }
-  );
+  return Promise.all([
+    fetch("data/STM_Line_ln.geojson"),
+    fetch("data/STM_Structure_pt.geojson"),
+    fetch("data/STM_Structure_py.geojson"),
+  ]).then((results) => {
+    return Promise.all(results.map((result) => result.json()));
+  });
 }
 
 // Call the getData function
@@ -45,18 +48,35 @@ getData()
 // Create function to draw the map
 function drawMap(result) {
   // Add Basemap Layers
-  const basemap = L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: "abcd",
-    maxZoom: 19,
-  });
+  const basemap = L.tileLayer(
+    "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+    {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: "abcd",
+      maxZoom: 19,
+    }
+  );
   basemap.addTo(map);
 
   const campusBasemap = L.esri.tiledMapLayer({
     url: "https://ugisserver.uky.edu/arcgis/rest/services/UK_MAP_BASE_Campus_bluegreen1_3857_ca/MapServer",
   });
   campusBasemap.addTo(map);
+
+  // Add Property Boundary to map
+  const boundary = L.esri.featureLayer({
+    url: "https://ugisserver.uky.edu/arcgis/rest/services/Support/UK_MAP_SUPPORT_StormWaterInfrastructure_dy/MapServer/14",
+    style: function (feature) {
+      return {
+        dashArray: "4 4",
+        fill: false,
+        color: "#000",
+        weight: 2,
+      };
+    },
+  });
+  boundary.addTo(map);
 
   // const buildingLabels = "https://ugisserver.uky.edu/arcgis/rest/services/UK_MAP_BASE_Campus_Overlay_3857_dy/MapServer/23"
 
@@ -146,7 +166,7 @@ function drawMap(result) {
   }).addTo(map);
 
   // Add storm structure polygons
-  let stmPoly = L.geoJSON(stmPolyGeoJson, {
+  stmPoly = L.geoJSON(stmPolyGeoJson, {
     style: function (feature) {
       return {
         color: "#000",
@@ -163,7 +183,7 @@ function drawMap(result) {
   }).addTo(map);
 
   // Create and add legend
-  drawLegend(stmBMP, stmDrains, stmPoly);
+  drawLegend();
 
   // When map is clicked on
   map.on("click", function (e) {
@@ -190,7 +210,13 @@ function drawMap(result) {
     let buffer = turf.buffer(clickPoint, 0.06096, { units: "kilometers" }); // 50ft (0.01524) 150ft (0.04572) 200ft (0.06096)
 
     // Find the starting point of the flow
-    let findPoint = selectPoints(network, clickPoint, buffer, stmDrains, multiCoords);
+    let findPoint = selectPoints(
+      network,
+      clickPoint,
+      buffer,
+      stmDrains,
+      multiCoords
+    );
     let startingPoint;
 
     // If no point is found...
@@ -215,16 +241,10 @@ function drawMap(result) {
       if (turf.booleanPointOnLine(startingPoint, line)) {
         // Check coordinates and assign if flow is up or down
         if (checkCoords(startingPoint, line)) {
-          // f.properties.flow = "Down";
-          // network.features.push(f);
-          // network.features[0].properties.flow = "Down";
+          // Push coordinates into multiCoords array
           multiCoords.push(propCoords);
-          // for (let index in propCoords) {
-          //   // Do not use the first index as it is already added to the network
-          //   if (index != 0) {
-          //     network.features[0].geometry.coordinates.push(propCoords[index]);
-          //   }
-          // }
+
+          // Define the end point
           let endPoint = propCoords[propCoords.length - 1];
 
           // Follow the downstream line
@@ -311,17 +331,13 @@ function followDown(endPoint, network, multiCoords) {
     let point = turf.point(endPoint);
 
     // Check if the end point is on the current line
-    // && !network.features.some((feature) => feature === f)
     if (turf.booleanPointOnLine(point, line)) {
+      // Check the coordinates to determin flow
       if (checkCoords(point, line)) {
+        // Push the coordinates to the multiCoords array
         multiCoords.push(propCoords);
-        // f.properties.flow = "Down";
-        // network.features.push(f);
-        // for (let index in propCoords) {
-        //   if (index != 0 && !network.features[0].geometry.coordinates.includes(propCoords[index])) {
-        //     network.features[0].geometry.coordinates.push(propCoords[index]);
-        //   }
-        // }
+
+        // Call the followDown function
         followDown(propCoords[propCoords.length - 1], network, multiCoords);
       }
     }
@@ -334,7 +350,15 @@ function followDown(endPoint, network, multiCoords) {
 
 // Filter function to only show storm drains
 function drainFilter(feature) {
-  let vals = ["Catchbasin", "Inlet", "Manhole-CB", "Detention Basin", "Headwall", "Detention Pond", "Spring"];
+  let vals = [
+    "Catchbasin",
+    "Inlet",
+    "Manhole-CB",
+    "Detention Basin",
+    "Headwall",
+    "Detention Pond",
+    "Spring",
+  ];
   const st = feature.properties.StructureType;
   const ft = feature.properties.FeatureType;
   if (vals.includes(st) || vals.includes(ft)) {
@@ -378,7 +402,11 @@ function selectPoints(network, clickPoint, buffer, stmDrains, multiCoords) {
   } else {
     // Go through each point inside the buffer and calculate distance from clicked point
     pointsInPoly.forEach(function (point) {
-      let distance = turf.distance(clickPoint.geometry.coordinates, [point._latlng.lng, point._latlng.lat], { units: "kilometers" });
+      let distance = turf.distance(
+        clickPoint.geometry.coordinates,
+        [point._latlng.lng, point._latlng.lat],
+        { units: "kilometers" }
+      );
       pointDist.push(distance);
     });
     // Find the index position of the lowest distance
@@ -386,13 +414,19 @@ function selectPoints(network, clickPoint, buffer, stmDrains, multiCoords) {
 
     // Get the clicked and nearest drain coordinates
     let clickCoords = clickPoint.geometry.coordinates;
-    let drainCoords = [pointsInPoly[indexNum]._latlng.lng, pointsInPoly[indexNum]._latlng.lat];
+    let drainCoords = [
+      pointsInPoly[indexNum]._latlng.lng,
+      pointsInPoly[indexNum]._latlng.lat,
+    ];
 
     // Push those coordinates into multiCoords as the starting line
     multiCoords.push([clickCoords, drainCoords]);
 
     // Return the lat and long of the starting position on the line
-    return [pointsInPoly[indexNum]._latlng.lng, pointsInPoly[indexNum]._latlng.lat];
+    return [
+      pointsInPoly[indexNum]._latlng.lng,
+      pointsInPoly[indexNum]._latlng.lat,
+    ];
   }
 }
 
@@ -424,6 +458,19 @@ function bmpToggle() {
 
 // *******************************************************
 // End bmpToggle
+// *******************************************************
+
+// Function to handle polygon toggle switch
+function polyToggle() {
+  if (map.hasLayer(stmPoly)) {
+    map.removeLayer(stmPoly);
+  } else {
+    map.addLayer(stmPoly);
+  }
+}
+
+// *******************************************************
+// End polyToggle
 // *******************************************************
 
 // Function to choose which symbol is used for BMP points
@@ -515,7 +562,7 @@ function buildInfo() {
 // *******************************************************
 
 // Function to draw legend
-function drawLegend(stmBMP, stmDrains, stmPoly) {
+function drawLegend() {
   const legendControl = L.control({
     position: "bottomleft",
   });
