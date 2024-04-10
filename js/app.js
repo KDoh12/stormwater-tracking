@@ -263,7 +263,7 @@ function drawMap(result) {
     networkLayer = L.geoJSON(network, {
       style: function (feature) {
         return {
-          color: "#FF4500",
+          color: "#3AF0C7",
           weight: 4,
         };
       },
