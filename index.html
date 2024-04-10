@@ -25,23 +25,12 @@
 
   <body>
     <!-- Header -->
-    <header
-      id="header"
-      class="d-flex flex-wrap justify-content-between align-items-center py-1"
-    >
+    <header id="header" class="d-flex flex-wrap justify-content-between align-items-center py-1">
       <div class="d-flex align-items-center">
         <img src="./img/UK logo-white.png" class="logo ms-3" />
         <h3 class="ms-3 mb-0">Stormwater Tracking</h3>
       </div>
-      <button
-        class="btn btn-primary me-3"
-        type="button"
-        data-bs-toggle="offcanvas"
-        data-bs-target="#about"
-        aria-controls="about"
-      >
-        About
-      </button>
+      <button class="btn btn-primary me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#about" aria-controls="about">About</button>
     </header>
 
     <!-- Map -->
@@ -56,40 +45,16 @@
     <!-- uiControl -->
     <div id="ui-control" class="rounded">
       <div class="form-check form-switch">
-        <input
-          class="form-check-input"
-          type="checkbox"
-          role="switch"
-          id="imagery-toggle"
-          onchange="imageryToggle()"
-        />
-        <label class="form-check-label" for="imagery-toggle"
-          >Aerial Imagery</label
-        >
+        <input class="form-check-input" type="checkbox" role="switch" id="imagery-toggle" onchange="imageryToggle()" />
+        <label class="form-check-label" for="imagery-toggle">Aerial Imagery</label>
       </div>
       <div class="form-check form-switch">
-        <input
-          class="form-check-input"
-          type="checkbox"
-          role="switch"
-          id="bmp-toggle"
-          checked
-          onchange="bmpToggle()"
-        />
+        <input class="form-check-input" type="checkbox" role="switch" id="bmp-toggle" checked onchange="bmpToggle()" />
         <label class="form-check-label" for="bmp-toggle">Stormwater BMPs</label>
       </div>
       <div class="form-check form-switch">
-        <input
-          class="form-check-input"
-          type="checkbox"
-          role="switch"
-          id="poly-toggle"
-          checked
-          onchange="polyToggle()"
-        />
-        <label class="form-check-label" for="poly-toggle"
-          >Stormwater Footprints</label
-        >
+        <input class="form-check-input" type="checkbox" role="switch" id="poly-toggle" checked onchange="polyToggle()" />
+        <label class="form-check-label" for="poly-toggle">Stormwater Footprints</label>
       </div>
     </div>
 
@@ -150,64 +115,34 @@
       <hr />
       <ul>
         <li class="d-flex align-items-center">
-          <span
-            style="
-              display: inline-block;
-              width: 20px;
-              height: 20px;
-              border: 2px dashed black;
-              margin-right: 5px;
-            "
-          ></span>
+          <span style="display: inline-block; width: 20px; height: 20px; border: 2px dashed black; margin-right: 5px"></span>
           UK Main Campus
         </li>
       </ul>
     </div>
 
     <!-- OffCanvas -->
-    <div
-      class="offcanvas offcanvas-end show"
-      tabindex="-1"
-      id="about"
-      aria-labelledby="aboutTitle"
-    >
+    <div class="offcanvas offcanvas-end show" tabindex="-1" id="about" aria-labelledby="aboutTitle">
       <div class="offcanvas-header">
-        <h5 class="offcanvas-title text-white" id="aboutTitle">
-          About this App!
-        </h5>
-        <button
-          type="button"
-          class="btn-close btn-close-white text-reset"
-          data-bs-dismiss="offcanvas"
-          aria-label="Close"
-        ></button>
+        <h5 class="offcanvas-title text-white" id="aboutTitle">About this App!</h5>
+        <button type="button" class="btn-close btn-close-white text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
       </div>
       <div class="offcanvas-body">
         <div>
           <h6><b>What is this?</b></h6>
-          <p>
-            This application is meant to show how stormwater (or anything that
-            happens to go into a stormwater drain) flows across campus.
-          </p>
+          <p>This application is meant to show how stormwater (or anything that happens to go into a stormwater drain) flows across campus.</p>
           <h6><b>What do I do?</b></h6>
           <p>
-            Using this application is simple! Click anywhere on UK's Main Campus
-            to see the path that something (hopefully water) takes through the
+            Using this application is simple! Click anywhere on UK's Main Campus to see the path that something (hopefully water) takes through the
             stormsewer system.
           </p>
           <h6><b>More Info</b></h6>
           <p>
-            The University of Kentucky's Main Campus covers roughly 900 acres.
-            Because of this size, many environmental systems are impacted
-            directly from UK. One of these systems is stormwater. Stormwater is
-            classified as any excess water from rainfall or snowmelt that is not
-            asorbed through the soil and flows across the ground. This
-            stormwater can pick up polutants or trash and carry it into local
-            waterbodies if left unmitigated. UK has implemented various Best
-            Management Practices (BMPs) and an exhaustive stormsewer system in
-            order to migitgate stormwater and ensure that local waterbodies are
-            kept clean.<br /><br />To Learn more about UK's stormwater efforts,
-            click
+            The University of Kentucky's Main Campus covers roughly 900 acres. Because of this size, many environmental systems are impacted directly
+            from UK. One of these systems is stormwater. Stormwater is classified as any excess water from rainfall or snowmelt that is not asorbed
+            through the soil and flows across the ground. This stormwater can pick up polutants or trash and carry it into local waterbodies if left
+            unmitigated. UK has implemented various Best Management Practices (BMPs) and an exhaustive stormsewer system in order to migitgate
+            stormwater and ensure that local waterbodies are kept clean.<br /><br />To Learn more about UK's stormwater efforts, click
             <a href="https://www.uky.edu/env/stormwater">here</a>
           </p>
         </div>
@@ -219,9 +154,7 @@
               <li>Created Spring 2024</li>
               <li>
                 For more info check out the
-                <a href="https://github.com/KDoh12/stormwater-tracking"
-                  >project page!</a
-                >
+                <a href="https://github.com/KDoh12/stormwater-tracking">project page!</a>
               </li>
               <li>
                 To see more projects, check out my
@@ -239,17 +172,9 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Incomplete/Missing Data</h5>
-            <button
-              type="button"
-              class="btn-close btn-close-white"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-          <div class="modal-body">
-            There are no drains within 200ft of your chosen area. Please choose
-            a different area.
-          </div>
+          <div class="modal-body">There are no drains within 200ft of your chosen area. Please choose a different area.</div>
         </div>
       </div>
     </div>

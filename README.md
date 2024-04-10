@@ -2,9 +2,11 @@
 
 ## Introduction
 
-Stormwater mitigation is a monumental task for many places. It is something that almost all cities and towns have to worry about as it has a significant impact on local waterways and soils. [Stormwater](https://www.uky.edu/env/stormwater/stormwater101) is excess water that acumulates due to rain or snowmelt that doesn't get trapped into the soil. Because of this, it flows across the ground picking up all kinds of issues along the way (trash, debris, pollutants, etc.) and will eventually either seep into the soil or dispense into waterbodies, thus impacting water quality for the area. While stormwater runoff is natural, the amount is increased due to human disturbances such as building new impervious surfaces such as parking lots, sidewalks and rooftops.
+Stormwater mitigation is a monumental task for many places. It is something that almost all cities and towns have to worry about as it has a significant impact on local waterways and soils. [Stormwater](https://www.uky.edu/env/stormwater/stormwater101) is excess water that acumulates due to rain or snowmelt that doesn't get trapped into the soil. Because of this, it flows across the ground picking up all kinds of issues along the way (trash, debris, pollutants, etc.) and will eventually either seep into the soil or dispense into waterbodies, thus impacting water quality for the area. While stormwater runoff is natural, the amount is increased due to human disturbances like building new impervious surfaces such as parking lots, sidewalks and rooftops.
 
-This project aims to provide an interactive mapping tool that would allow users to place a "raindrop" anywhere on the University of Kentucky Main Campus, and track its' flow through campus via the many storm drains, sewers, and BMPs that all make up the University's stormwater system. With this tool, the [Environmental Quality Management](https://www.uky.edu/env/) office at UK, as well as anyone interested, will be able to see how stormwater in various places around campus can impact the whole network. We can visualize which storm sewers might recieve more stormwater than others, and is that an issue to be addressed. It will also enable the ability to track the potential impact an illicit discharge or spill could have if one were to happen. For example, if a chemical spill happened around the Chem-Phys building, where would that chemical end up? It will also enable "reverse" tracking so that we could answer the question of if a specific stormwater outlet was effected by some spill, where could the spill have originated?
+![image showing runoff percents](./img/storm_runoff.jpg)
+
+This project aims to provide an interactive mapping tool that would allow users to place a "raindrop" anywhere on the University of Kentucky Main Campus, and track its' flow through campus via the many storm drains, sewers, and BMPs that all make up the University's stormwater system. With this tool, the [Environmental Quality Management](https://www.uky.edu/env/) office at UK, as well as anyone interested, will be able to see how stormwater in various places around campus can impact the whole network. We can visualize which storm sewers might recieve more stormwater than others which could cause issues that need to be addressed. It will also enable the ability to track the potential impact an illicit discharge or spill could have if one were to happen. For example, if a chemical spill happened around the Chem-Phys building, where would that chemical end up? It will also enable "reverse" tracking so that we could answer the question of if a specific stormwater outlet was effected by some spill, where could the spill have originated? A secondary objective of this project is also to audit the existing stormwater data to identify areas that are either missing data or have data inaccuracies.
 
 ## Methodology
 
@@ -61,9 +63,9 @@ Mobile Layout
 
 ### Symbology
 
-Most of my data resides as points and lines. Upon first loading there will be no data displayed besides a basemap. Once someone clicks or taps on the map, there will be a line that gets drawn from your starting point and travel until it reaches the end of the stormwater network. This line will be a simple line utilizing a single color. The line will either be UK Blue, or a type of Yellow or Orange depending on which looks better against the basemap.
+Most of my data resides as points and lines. Upon first loading there will be some points and polygons displayed along with a basemap. The points represent Water Quality BMPs and will be styled based on what kind of BMP they are. I will include a photo of what the legend will look like below.
 
-Along the line, various points will also show up, these points will have various symbols based on their "type", I will include a photo below of their symbols.
+Once someone clicks or taps on the map, there will be a line that gets drawn from your starting point and travel until it reaches the end of the stormwater network. This line will be a simple line utilizing a single color. The line will either be UK Blue, or a type of Yellow or Orange depending on which looks better against the basemap.
 
 ![legend showing point symbols](./img/point_legend.png)
 
@@ -71,9 +73,9 @@ These points will display info about themselves when hovered/tapped on.
 
 ### User Interaction
 
-This whole map relies on user interaction to even function. Without interaction, it is simply a basemap. Users will click or tap a location on the map. This clicked/tapped location becomes their "starting point" which the route will begin to draw from. Once the route has drawn, info about the route will display either in the info box, or as a popup on the route itself. Users will also see various points popup along the route. I will not include a legend of these points on the map as I want users to be curious as to what they are and intice them to hover/tap on the points which will provide additional info about them such as what they are, why they are important, and a link to additional info about how they work.
+This whole map relies on user interaction to even function. Without interaction, it is simply a basemap. Users will click or tap a location on the map. This clicked/tapped location becomes their "starting point" which the route will begin to draw from. Once the route has drawn, info about the route will display either in the info box, or as a popup on the route itself. Users will also see various points. When hovered/tapped on the points will provide additional info about them such as what they are, why they are important, and a link to additional info about how they work.
 
-An additional piece of user interaction that interacts with the map is a toggle switch that will "turn on" aeiral imagery that is overlaid on the basemap. This provides just a bit of extra visual information to users.
+Some additional pieces of user interaction that interacts with the map is a group of toggle switches that will turn on/off various layers on the map. This provides just a bit of extra visual information for users to enjoy.
 
 There is a sidebar component that loads up first launching the site, this contains general info about the map and the overall project as well as attribution information.
 
@@ -83,4 +85,8 @@ Users will be able to pan and zoom around the map, but will be confined to UK's 
 
 ### Design Choices
 
+This web map application is designed to be displayed alongside other UK content. Because of this, I have chosen to use colors and fonts that align with UK Standards so that it appears to be an official UK webpage.
+
 ### Conclusion
+
+Using this web map application, users are able to visualize the path that a raindrop, or spill, or illicit discharge would take through UK's storm sewer. With this visualization, it is possible to see which areas of campus are more impacted by stormwater or see which watersheds are impacted by spills and illicit discharges.

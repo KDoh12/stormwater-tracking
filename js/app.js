@@ -30,13 +30,11 @@ let drain;
 
 // Create function to load all layers
 function getData() {
-  return Promise.all([
-    fetch("data/STM_Line_ln.geojson"),
-    fetch("data/STM_Structure_pt.geojson"),
-    fetch("data/STM_Structure_py.geojson"),
-  ]).then((results) => {
-    return Promise.all(results.map((result) => result.json()));
-  });
+  return Promise.all([fetch("data/STM_Line_ln.geojson"), fetch("data/STM_Structure_pt.geojson"), fetch("data/STM_Structure_py.geojson")]).then(
+    (results) => {
+      return Promise.all(results.map((result) => result.json()));
+    }
+  );
 }
 
 // Call the getData function
@@ -49,15 +47,12 @@ getData()
 // Create function to draw the map
 function drawMap(result) {
   // Add Basemap Layers
-  const basemap = L.tileLayer(
-    "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-    {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: "abcd",
-      maxZoom: 19,
-    }
-  );
+  const basemap = L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: "abcd",
+    maxZoom: 19,
+  });
   basemap.addTo(map);
 
   const campusBasemap = L.esri.tiledMapLayer({
@@ -208,13 +203,7 @@ function drawMap(result) {
     let buffer = turf.buffer(clickPoint, 0.06096, { units: "kilometers" }); // 50ft (0.01524) 150ft (0.04572) 200ft (0.06096)
 
     // Find the starting point of the flow
-    let findPoint = selectPoints(
-      network,
-      clickPoint,
-      buffer,
-      stmDrains,
-      multiCoords
-    );
+    let findPoint = selectPoints(network, clickPoint, buffer, stmDrains, multiCoords);
     let startingPoint;
 
     // If no point is found...
@@ -351,15 +340,7 @@ function followDown(endPoint, network, multiCoords) {
 
 // Filter function to only show storm drains
 function drainFilter(feature) {
-  let vals = [
-    "Catchbasin",
-    "Inlet",
-    "Manhole-CB",
-    "Detention Basin",
-    "Headwall",
-    "Detention Pond",
-    "Spring",
-  ];
+  let vals = ["Catchbasin", "Inlet", "Manhole-CB", "Detention Basin", "Headwall", "Detention Pond", "Spring"];
   const st = feature.properties.StructureType;
   const ft = feature.properties.FeatureType;
   if (vals.includes(st) || vals.includes(ft)) {
@@ -403,11 +384,7 @@ function selectPoints(network, clickPoint, buffer, stmDrains, multiCoords) {
   } else {
     // Go through each point inside the buffer and calculate distance from clicked point
     pointsInPoly.forEach(function (point) {
-      let distance = turf.distance(
-        clickPoint.geometry.coordinates,
-        [point._latlng.lng, point._latlng.lat],
-        { units: "kilometers" }
-      );
+      let distance = turf.distance(clickPoint.geometry.coordinates, [point._latlng.lng, point._latlng.lat], { units: "kilometers" });
       pointDist.push(distance);
     });
     // Find the index position of the lowest distance
@@ -415,19 +392,13 @@ function selectPoints(network, clickPoint, buffer, stmDrains, multiCoords) {
 
     // Get the clicked and nearest drain coordinates
     let clickCoords = clickPoint.geometry.coordinates;
-    let drainCoords = [
-      pointsInPoly[indexNum]._latlng.lng,
-      pointsInPoly[indexNum]._latlng.lat,
-    ];
+    let drainCoords = [pointsInPoly[indexNum]._latlng.lng, pointsInPoly[indexNum]._latlng.lat];
 
     // Push those coordinates into multiCoords as the starting line
     multiCoords.push([clickCoords, drainCoords]);
 
     // Return the lat and long of the starting position on the line
-    return [
-      pointsInPoly[indexNum]._latlng.lng,
-      pointsInPoly[indexNum]._latlng.lat,
-    ];
+    return [pointsInPoly[indexNum]._latlng.lng, pointsInPoly[indexNum]._latlng.lat];
   }
 }
 
@@ -598,11 +569,7 @@ function showDrain() {
       let featCoords = feature.geometry.coordinates;
       let vals = ["Catchbasin", "Inlet", "Manhole-CB", "Headwall", "Spring"];
 
-      if (
-        featCoords[0] === coords[0] &&
-        featCoords[1] === coords[1] &&
-        vals.includes(feature.properties.StructureType)
-      ) {
+      if (featCoords[0] === coords[0] && featCoords[1] === coords[1] && vals.includes(feature.properties.StructureType)) {
         return feature;
       }
     },

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Stormwater Flow Tracking</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h1 id="stormwater-flow-tracking">Stormwater Flow Tracking</h1>
+<h2 id="introduction">Introduction</h2>
+<p>Stormwater mitigation is a monumental task for many places. It is something that almost all cities and towns have to worry about as it has a significant impact on local waterways and soils. <a href="https://www.uky.edu/env/stormwater/stormwater101">Stormwater</a> is excess water that acumulates due to rain or snowmelt that doesn't get trapped into the soil. Because of this, it flows across the ground picking up all kinds of issues along the way (trash, debris, pollutants, etc.) and will eventually either seep into the soil or dispense into waterbodies, thus impacting water quality for the area. While stormwater runoff is natural, the amount is increased due to human disturbances like building new impervious surfaces such as parking lots, sidewalks and rooftops.</p>
+<p><img src="file:///d:\NewMapsPlus\stormwater-tracking\img\storm_runoff.jpg" alt="image showing runoff percents"></p>
+<p>This project aims to provide an interactive mapping tool that would allow users to place a &quot;raindrop&quot; anywhere on the University of Kentucky Main Campus, and track its' flow through campus via the many storm drains, sewers, and BMPs that all make up the University's stormwater system. With this tool, the <a href="https://www.uky.edu/env/">Environmental Quality Management</a> office at UK, as well as anyone interested, will be able to see how stormwater in various places around campus can impact the whole network. We can visualize which storm sewers might recieve more stormwater than others which could cause issues that need to be addressed. It will also enable the ability to track the potential impact an illicit discharge or spill could have if one were to happen. For example, if a chemical spill happened around the Chem-Phys building, where would that chemical end up? It will also enable &quot;reverse&quot; tracking so that we could answer the question of if a specific stormwater outlet was effected by some spill, where could the spill have originated? A secondary objective of this project is also to audit the existing stormwater data to identify areas that are either missing data or have data inaccuracies.</p>
+<h2 id="methodology">Methodology</h2>
+<p>The below sections will describe a bit about my methodology for this project. I will discuss the data I will be using, my technology stack, the general layout of my web map, my symbology choices, what kind of user interaction I have and the general aesthetics I have chosen for my project.</p>
+<h3 id="data">Data</h3>
+<p>Data Sources:</p>
+<ul>
+<li>UK Stormwater Infrastructure
+<ul>
+<li>Source: <a href="https://ukgis.uky.edu/portal/apps/sites/#/ukgis">UK Infrastrucure Operations</a></li>
+<li>This data is a collection of points, lines, and polygons representing Manholes, BMPs, Storm Sewers, Retention Basins, etc.</li>
+</ul>
+</li>
+<li>UK Basemap
+<ul>
+<li>Source: <a href="https://ugisserver.uky.edu/arcgis/rest/services/UK_MAP_BASE_Campus_bluegreen1_3857_ca/MapServer">UK FIS</a></li>
+<li>This is a map service layer to be used as a reference layer in the map.</li>
+</ul>
+</li>
+<li>Aerial Imagery
+<ul>
+<li>Source: <a href="https://ugisserver.uky.edu/arcgis/rest/services/UK_MAP_BASE_Imagery_3857_ca/MapServer">UK FIS</a></li>
+<li>This is a map service layer of the most current campus imagery.</li>
+</ul>
+</li>
+</ul>
+<p>The major data I am working with is the Stormwater Infrastructure for UK. This data is maintained by the UK Infrastructure Operations team and is housed in ESRI Geodatabases and provided through ArcGIS Server as Map/Feature Service Layers. It is actually a dataset made up a point feature class (drains, manholes, etc.), a line feature class (sewer lines, streams, etc.) and a polygon feature class (shape of detention/retention basins, streams, etc.).</p>
+<p>For this project I decided to export these three feature classes into JSON format in a local folder. This is so I can make needed adjustments and updates without having to wait on updates being made for me, and so I do not unintentionally damage the production data.</p>
+<p>I performed majority of my data processes in ArcGIS Pro as much of what was needed was minor adjustments of the locations such as moving a drain point slighlty so that it actually connects to the appropriate storm sewer line. Something interesting I learned is that ArcGIS Pro doesn't natively read JSON files, so I had to import those JSON files and make Feature Classes. I made a few field calculations just for readability purposes. Once majority of the data seemed clean, I then exported as GeoJSON. From that point on, if I needed to make any changes, I switched to using QGIS as it is much easier and straight forward to work with GeoJSON/JSON files. After I exported to GeoJSON, I visually checked the layers in QGIS as well as made sure they were in the correct coordinate system <a href="https://epsg.io/4326">EPSG: 4326</a>.</p>
+<p>Below are snapshots of the data:</p>
+<p>Storm Structure Points
+<img src="file:///d:\NewMapsPlus\stormwater-tracking\img\StrmStructurePt.png" alt="table with point data"></p>
+<p>Storm Structure Lines
+<img src="file:///d:\NewMapsPlus\stormwater-tracking\img\StrmLine.png" alt="table with line data"></p>
+<p>Storm Structure Polygons
+<img src="file:///d:\NewMapsPlus\stormwater-tracking\img\StrmStructurePoly.png" alt="table with polygon data"></p>
+<p>I plan on adding a &quot;description&quot; field as well as a &quot;link&quot; field. The description field will be used in a popup as will the link field. Description will provide a brief sentance on what that particular storm structure does, and the link will have a link to where you can find more in-depth info.</p>
+<h3 id="technology-stack">Technology Stack</h3>
+<p>This mapping tool is a web based application that can be used both on mobile, and on desktop devices. I will be using basic HTML/CSS/JS as my framework while utilizing <a href="https://getbootstrap.com/">Bootstrap</a> to help build responsive design. For the actual web map, I am using <a href="https://leafletjs.com/">Leaflet</a> with some heavy lifting thanks to <a href="https://turfjs.org/">Turf.js</a>, and <a href="https://github.com/Esri/esri-leaflet">ESRI Leaflet</a> which enables me to integrate our existing UK Basemap Service into the map.</p>
+<h3 id="layout">Layout</h3>
+<p>Below are very basic mockups that I developed to help decide on how I wanted my web map to look/feel.</p>
+<p>Desktop Layout</p>
+<p><img src="file:///d:\NewMapsPlus\stormwater-tracking\img\desktop_mockup.png" alt="desktop layout"></p>
+<p>Mobile Layout</p>
+<p><img src="file:///d:\NewMapsPlus\stormwater-tracking\img\mobile_mockup.png" alt="mobile layout"></p>
+<h3 id="symbology">Symbology</h3>
+<p>Most of my data resides as points and lines. Upon first loading there will be some points and polygons displayed along with a basemap. The points represent Water Quality BMPs and will be styled based on what kind of BMP they are. I will include a photo of what the legend will look like below.</p>
+<p>Once someone clicks or taps on the map, there will be a line that gets drawn from your starting point and travel until it reaches the end of the stormwater network. This line will be a simple line utilizing a single color. The line will either be UK Blue, or a type of Yellow or Orange depending on which looks better against the basemap.</p>
+<p><img src="file:///d:\NewMapsPlus\stormwater-tracking\img\point_legend.png" alt="legend showing point symbols"></p>
+<p>These points will display info about themselves when hovered/tapped on.</p>
+<h3 id="user-interaction">User Interaction</h3>
+<p>This whole map relies on user interaction to even function. Without interaction, it is simply a basemap. Users will click or tap a location on the map. This clicked/tapped location becomes their &quot;starting point&quot; which the route will begin to draw from. Once the route has drawn, info about the route will display either in the info box, or as a popup on the route itself. Users will also see various points. When hovered/tapped on the points will provide additional info about them such as what they are, why they are important, and a link to additional info about how they work.</p>
+<p>Some additional pieces of user interaction that interacts with the map is a group of toggle switches that will turn on/off various layers on the map. This provides just a bit of extra visual information for users to enjoy.</p>
+<p>There is a sidebar component that loads up first launching the site, this contains general info about the map and the overall project as well as attribution information.</p>
+<p>There is also an &quot;alert&quot; component that will popup on the screen is a user clicks/taps on a part of the map that will not generate any route. This is to provide some sort of confirmation that the user was doing the right thing, just in a &quot;bad spot&quot;. These &quot;bad spots&quot;, can't really be shown and is entirely dependant upon the underlying stormwater features. Areas, that have no data, will not result in a route.</p>
+<p>Users will be able to pan and zoom around the map, but will be confined to UK's Main Campus. This is so users will not become &quot;lost&quot; and so they will not click on points outside of campus, thus resulting in nothing happening on the map.</p>
+<h3 id="design-choices">Design Choices</h3>
+<p>This web map application is designed to be displayed alongside other UK content. Because of this, I have chosen to use colors and fonts that align with UK Standards so that it appears to be an official UK webpage.</p>
+<h3 id="conclusion">Conclusion</h3>
+
+            
+            
+        </body>
+        </html>
