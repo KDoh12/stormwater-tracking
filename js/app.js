@@ -26,6 +26,7 @@ let networkLayer;
 let bufferLayer;
 let aerial;
 let stmPoly;
+let drain;
 
 // Create function to load all layers
 function getData() {
@@ -123,7 +124,7 @@ function drawMap(result) {
   // Set bounds to the stmLine layer
   map.setMaxBounds(stmLine.getBounds());
 
-  // Add Storm Drain features
+  // Build Storm Drain features
   let stmDrains = L.geoJSON(stmPointGeoJson, {
     pointToLayer: function (feature, latlng) {
       return L.circleMarker(latlng, {
@@ -131,10 +132,7 @@ function drawMap(result) {
       });
     },
     filter: drainFilter,
-    onEachFeature: function (feature, layer) {
-      layer.bindTooltip(`${feature.geometry.coordinates}`);
-    },
-  }).addTo(map);
+  });
   // console.log(stmDrains);
 
   // Add BMP points
@@ -193,7 +191,7 @@ function drawMap(result) {
       features: [],
     };
 
-    console.log(network);
+    // console.log(network);
 
     multiCoords = [];
 
@@ -206,7 +204,7 @@ function drawMap(result) {
     // Create a point from clicked location
     let clickPoint = turf.point([e.latlng.lng, e.latlng.lat]);
 
-    // Create a buffer and add to map
+    // Create a buffer
     let buffer = turf.buffer(clickPoint, 0.06096, { units: "kilometers" }); // 50ft (0.01524) 150ft (0.04572) 200ft (0.06096)
 
     // Find the starting point of the flow
@@ -284,6 +282,9 @@ function drawMap(result) {
 
     // Build the info widget
     buildInfo();
+
+    // Show the initial drain on map
+    showDrain();
 
     console.log("Network Layer: ", networkLayer);
   });
@@ -370,7 +371,7 @@ function drainFilter(feature) {
 // End drainFilter
 // *******************************************************
 
-// Filter function to only show BMPs on line
+// Filter function to only show BMPs
 function bmpFilter(feature) {
   let vals = ["Water Quality BMP"];
   const st = feature.properties.StructureType;
@@ -584,3 +585,45 @@ function drawLegend() {
 // *******************************************************
 // End drawLegend
 // *******************************************************
+
+// Function to show the initial drain on the map
+function showDrain() {
+  if (drain) {
+    map.removeLayer(drain);
+  }
+
+  drain = L.geoJSON(stmPointGeoJson, {
+    filter: function (feature) {
+      let coords = network.features[0].geometry.coordinates[0][1];
+      let featCoords = feature.geometry.coordinates;
+      let vals = ["Catchbasin", "Inlet", "Manhole-CB", "Headwall", "Spring"];
+
+      if (
+        featCoords[0] === coords[0] &&
+        featCoords[1] === coords[1] &&
+        vals.includes(feature.properties.StructureType)
+      ) {
+        return feature;
+      }
+    },
+    pointToLayer: function (geoJsonPoint, latlng) {
+      return L.marker(latlng, {
+        icon: L.icon({
+          iconUrl: "img/symbols/Drain.svg",
+          iconSize: [20, 20],
+        }),
+      });
+    },
+    onEachFeature: function (feature, layer) {
+      let props = feature.properties;
+      let popupInfo = `The stormwater starts the journey here by draining into a ${props.StructureType}.`;
+
+      layer.bindPopup(popupInfo, {
+        className: "leaflet-popup-own",
+      });
+    },
+  });
+  drain.addTo(map);
+
+  // console.log(coords);
+}

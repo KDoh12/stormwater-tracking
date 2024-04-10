@@ -1,1 +1,47 @@
-<?xml version="1.0" encoding="UTF-8"?><svg id="a" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16.46 26.02"><g id="b"><g isolation="isolate"><text transform="translate(.5 18.88)" fill="#fff" font-family="ArialMT, Arial" font-size="22" isolation="isolate"><tspan x="0" y="0">&quot;</tspan></text></g><path d="M15.96,19.1H.5V3.64h15.46v15.46ZM15.51,18.66V4.08H.94v14.57h14.57Z" fill="#0033a0" stroke="#0033a0" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.2,7.9c1.93,0,3.5,1.57,3.5,3.5s-1.57,3.5-3.5,3.5-3.5-1.57-3.5-3.5,1.57-3.5,3.5-3.5Z" fill="#0033a0" fill-rule="evenodd" stroke-width="0"/></g></svg>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="a" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 16.5 26">
+  <defs>
+    <style>
+      .cls-1, .cls-2 {
+        isolation: isolate;
+      }
+
+      .cls-3 {
+        fill-rule: evenodd;
+      }
+
+      .cls-3, .cls-4 {
+        stroke-width: 0px;
+      }
+
+      .cls-3, .cls-5 {
+        fill: #0033a0;
+      }
+
+      .cls-2 {
+        font-family: ArialMT, Arial;
+        font-size: 22px;
+      }
+
+      .cls-2, .cls-4 {
+        fill: #fff;
+      }
+
+      .cls-5 {
+        stroke: #0033a0;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+    </style>
+  </defs>
+  <rect class="cls-4" x=".9" y="4.1" width="14.6" height="14.6"/>
+  <g id="b">
+    <g class="cls-1">
+      <g class="cls-1">
+        <text class="cls-2" transform="translate(.5 18.9)"><tspan x="0" y="0">&quot;</tspan></text>
+      </g>
+    </g>
+    <path class="cls-5" d="M16,19.1H.5V3.6h15.5v15.5ZM15.5,18.7V4.1H.9v14.6h14.6Z"/>
+    <path class="cls-3" d="M8.2,7.9c1.9,0,3.5,1.6,3.5,3.5s-1.6,3.5-3.5,3.5-3.5-1.6-3.5-3.5,1.6-3.5,3.5-3.5Z"/>
+  </g>
+</svg>

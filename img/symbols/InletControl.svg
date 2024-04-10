@@ -1,1 +1,21 @@
-<?xml version="1.0" encoding="UTF-8"?><svg id="a" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 11.46 10.01"><path d="M8.61,8.31H2.85l2.95-4.97,2.8,4.97ZM10.47,9.43L5.8,1.18.99,9.43h9.48ZM11.46,10.01H0L5.8,0l5.66,10.01Z" fill="#8400a8" fill-rule="evenodd" stroke-width="0"/></svg>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="a" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 11.5 10">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #fff;
+      }
+
+      .cls-1, .cls-2 {
+        stroke-width: 0px;
+      }
+
+      .cls-2 {
+        fill: #8400a8;
+        fill-rule: evenodd;
+      }
+    </style>
+  </defs>
+  <polygon class="cls-1" points="5.8 1.2 1 9.4 10.5 9.4 5.8 1.2"/>
+  <path class="cls-2" d="M8.6,8.3H2.8l3-5,2.8,5h0ZM10.5,9.4L5.8,1.2,1,9.4h9.5ZM11.5,10H0L5.8,0l5.7,10Z"/>
+</svg>
