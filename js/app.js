@@ -27,6 +27,7 @@ let bufferLayer;
 let aerial;
 let stmPoly;
 let drain;
+let markerLayer = L.layerGroup();
 
 // Create function to load all layers
 function getData() {
@@ -180,6 +181,15 @@ function drawMap(result) {
 
   // When map is clicked on
   map.on("click", function (e) {
+    // Clear any line markers if any
+    layers = markerLayer.getLayers();
+
+    if (layers.length > 0) {
+      markerLayer.eachLayer(function (layer) {
+        layer.remove();
+      });
+    }
+
     // Start Network feature
     network = {
       type: "FeatureCollection",
@@ -264,10 +274,40 @@ function drawMap(result) {
       style: function (feature) {
         return {
           color: "#3AF0C7",
-          weight: 4,
+          weight: 3,
         };
       },
     }).addTo(map);
+
+    // Get coordinates and loop through each polyline
+    let coords = network.features[0].geometry.coordinates;
+    coords.forEach(function (coordsArray) {
+      // Create a polyline
+      const polyline = L.polyline(flipCoords(coordsArray));
+
+      // Create a line decoration using polyLineDecorator
+      let decorator = L.polylineDecorator(polyline, {
+        patterns: [
+          {
+            offset: "50%",
+            repeat: 0,
+            symbol: L.Symbol.arrowHead({
+              pixelSize: 13,
+              pathOptions: {
+                fillColor: "#3AF0C7",
+                fillOpacity: 1,
+                weight: 1,
+                color: "#000",
+              },
+            }),
+          },
+        ],
+      }).addTo(markerLayer);
+    });
+
+    // Add the markers to the map
+    markerLayer.addTo(map);
+    // console.log(markerLayer);
 
     // Build the info widget
     buildInfo();
@@ -594,3 +634,26 @@ function showDrain() {
 
   // console.log(coords);
 }
+
+// *******************************************************
+// End showDrain
+// *******************************************************
+
+// Function that takes array of coordinates and flips them
+function flipCoords(coordsArray) {
+  // Construct array to hold coordinates
+  let newCoords = [];
+
+  // Loop through each pair of coordinates
+  coordsArray.forEach(function (coords) {
+    // Push the flipped coordinates to the array
+    newCoords.push([coords[1], coords[0]]);
+  });
+
+  // Return the new coordinates
+  return newCoords;
+}
+
+// *******************************************************
+// End flipCoords
+// *******************************************************
